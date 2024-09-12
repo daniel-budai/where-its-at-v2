@@ -15,8 +15,5 @@
     "@types/uuid": "^10.0.0",
     "serverless-plugin-typescript": "^2.1.5",
     "typescript": "^5.6.2"
-  },
-  "scripts": {
-    "seed-events": "npx ts-node src/scripts/seedEvents.ts"
   }
 }
