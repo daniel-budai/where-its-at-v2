@@ -1,0 +1,72 @@
+org: danielbudai
+service: where-its-at-v2
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: eu-north-1
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource:
+            - Fn::GetAtt: [EventsAndTicketsTable, Arn]
+  environment:
+    TABLE_NAME: "events-and-tickets-table-${sls:stage}"
+
+build:
+  esbuild: false
+
+functions:
+  getAllEvents:
+    handler: src/lambda/functions/getAllEvents/getAllEvents.handler
+    events:
+      - httpApi:
+          path: /events
+          method: GET
+  orderTickets:
+    handler: src/lambda/functions/orderTickets/orderTickets.handler
+    events:
+      - httpApi:
+          path: /tickets
+          method: POST
+  verifyTickets:
+    handler: src/lambda/functions/verifyTickets/verifyTickets.handler
+    events:
+      - httpApi:
+          path: /tickets/verify
+          method: POST
+  addEvents:
+    handler: src/lambda/functions/addEvents/addEvents.handler
+    events:
+      - httpApi:
+          path: /add-events
+          method: POST
+
+resources:
+  Resources:
+    EventsAndTicketsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: PK
+            AttributeType: S
+          - AttributeName: SK
+            AttributeType: S
+        KeySchema:
+          - AttributeName: PK
+            KeyType: HASH
+          - AttributeName: SK
+            KeyType: RANGE
+        BillingMode: PAY_PER_REQUEST
+        TableName: ${self:provider.environment.TABLE_NAME}
+
+plugins:
+  - serverless-plugin-typescript
