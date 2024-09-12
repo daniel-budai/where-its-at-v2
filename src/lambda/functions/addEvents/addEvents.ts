@@ -9,8 +9,8 @@ const docClient = DynamoDBDocumentClient.from(db);
 export const handler = async (event: any) => {
   try {
     const newEvent = JSON.parse(event.body);
-
     const id = uuidv4();
+    const date = new Date(newEvent.date);
 
     await docClient.send(
       new PutCommand({
@@ -18,6 +18,8 @@ export const handler = async (event: any) => {
         Item: {
           PK: `EVENT#${id}`,
           SK: `EVENT#${id}`,
+          GSI1PK: "EVENT",
+          GSI1SK: `${date.toISOString()}#${newEvent.time}`,
           id,
           ...newEvent,
         },
